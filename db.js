@@ -16,20 +16,25 @@ connection.query(`CREATE TABLE IF NOT EXISTS accounts (
 
 connection.query(`CREATE TABLE IF NOT EXISTS posts (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    FOREIGN KEY (username) REFERENCES accounts(username) ON DELETE CASCADE,
-    contentPost VARCHAR(100)
+    contentPost VARCHAR(100),
+    accountId INT,
+    FOREIGN KEY (username) REFERENCES accounts(username) ON DELETE CASCADE
+    
 )`)
 
 connection.query(`CREATE TABLE IF NOT EXISTS comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    FOREIGN KEY (username) REFERENCES accounts(username) ON DELETE CASCADE,
-    contentComments VARCHAR(100)
+    contentComments VARCHAR(100),
+    accountId INT,    
+    FOREIGN KEY (username) REFERENCES accounts(username) ON DELETE CASCADE
+    
 )`)
 
 connection.query(`CREATE TABLE IF NOT EXISTS privateMessage (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    FOREIGN KEY (username) REFERENCES accounts(username) ON DELETE CASCADE,
-    contentPM VARCHAR(100)
+    contentPM VARCHAR(100),
+    accountId INT,
+    FOREIGN KEY (username) REFERENCES accounts(username) ON DELETE CASCADE    
 )`)
 
 module.exports = connection
