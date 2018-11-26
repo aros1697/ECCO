@@ -9,8 +9,14 @@ router.get('/', (request, response, next) => {
 })
 
 router.post('/', (request, response, next) => {
+    const user = {
+        username: request.body.username,
+        password: request.body.password,
+        email: request.body.email
+    }
     response.status(201).json({
-        message: "Account was created"
+        message: "Account was created",
+        createdUser: user
     })
 })
 
