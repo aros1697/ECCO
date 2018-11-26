@@ -1,0 +1,25 @@
+{
+  "name": "ecco",
+  "version": "1.0.0",
+  "description": "An opinion-based platform",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antonbsvard/ECCO.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/antonbsvard/ECCO/issues"
+  },
+  "homepage": "https://github.com/antonbsvard/ECCO#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "morgan": "^1.9.1",
+    "nodemon": "^1.18.6"
+  }
+}
