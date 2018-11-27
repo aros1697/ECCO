@@ -8,6 +8,7 @@ const commentsRoutes = require('./api/routes/comments')
 const accountsRoutes = require('./api/routes/accounts')
 
 app.use(morgan('dev'))
+app.use(express.static('avatars'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 
