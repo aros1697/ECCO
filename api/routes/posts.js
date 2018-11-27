@@ -1,13 +1,14 @@
 const express = require('express')
 const router = express.Router()
+const checkAuth = require('../middleware/check-auth')
 
-router.get('/', (request, response, next) => {
+router.get('/', checkAuth, (request, response, next) => {
     response.status(200).json({
         message: "Handling GET request to /posts"
     })
 })
 
-router.post('/', (request, response, next) => {
+router.post('/', checkAuth, (request, response, next) => {
     const post = {
         postId: request.body.postId,
         username: request.body.username,
@@ -19,7 +20,7 @@ router.post('/', (request, response, next) => {
     })
 })
 
-router.get('/:postsId', (request, response, next) => {
+router.get('/:postsId', checkAuth, (request, response, next) => {
     const id = request.params.postsId
     if(id === '1'){
         response.status(200).json({
@@ -32,7 +33,7 @@ router.get('/:postsId', (request, response, next) => {
         })
     }
 })
-
+/*
 router.put('/:postsId', (request, response, next) => {
     response.status(200).json({
         message: "Updated posts!"
@@ -43,5 +44,6 @@ router.delete('/:postsId', (request, response, next) => {
     response.status(200).json({
         message: "Deleted posts!"
     })
-})
+})*/
+
 module.exports = router

@@ -2,6 +2,10 @@ const express = require('express')
 const router = express.Router()
 const multer = require('multer')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const checkAuth = require('../middleware/check-auth')
+
+const jwtSecret = "jknasbdhbsadvsavdagsdsdvraw"
 
 // save uploads in folder /avatars and name it to the original filename
 const storage = multer.diskStorage({
@@ -60,7 +64,29 @@ router.post('/signup', upload.single('avatar'), (request, response, next) => {
 })
 
 router.post('/login', (request, response, next) => {
-    
+    bcrypt.compare(request.body.password, user[0].password, (err, result) => {
+        if (err) {
+            response.status(401).json({
+                message: "Authorization failed"
+            })
+        } 
+        if (result) {
+            const accessToken = jwt.sign({
+                username: user[0].username,
+            }, jwtSecret,
+            {
+                expiresIn: "1h"
+            }
+            )
+            response.status(200).json({
+                message: "Authorization successful",
+                accessToken: accessToken
+            })
+        }
+        response.status(401).json({
+            message: "Authorization failed"
+        })
+    })
 })
 
 router.get('/:username', (request, response, next) => {
@@ -77,13 +103,13 @@ router.get('/:username', (request, response, next) => {
     }
 })
 
-router.put('/:username', (request, response, next) => {
+router.put('/:username', checkAuth, (request, response, next) => {
     response.status(200).json({
         message: "Updated profile!"
     })
 })
 
-router.delete('/:username', (request, response, next) => {
+router.delete('/:username', checkAuth, (request, response, next) => {
     response.status(200).json({
         message: "Deleted account!"
     })

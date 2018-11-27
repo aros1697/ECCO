@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const checkAuth = require('../middleware/check-auth')
 
 router.get('/', (request, response, next) => {
     response.status(200).json({
@@ -7,7 +8,7 @@ router.get('/', (request, response, next) => {
     })
 })
 
-router.post('/', (request, response, next) => {
+router.post('/', checkAuth, (request, response, next) => {
     response.status(201).json({
         message: "Comment was created"
     })
@@ -21,7 +22,7 @@ router.get('/:commentId', (request, response, next) => {
     })
 })
 
-router.delete('/:commentId', (request, response, next) => {
+router.delete('/:commentId', checkAuth, (request, response, next) => {
     const commentId = request.params.commentId
     response.status(200).json({
         message: "Comment deleted",

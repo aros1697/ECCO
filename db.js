@@ -18,8 +18,7 @@ connection.query(`CREATE TABLE IF NOT EXISTS posts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     contentPost VARCHAR(100),
     accountId INT,
-    FOREIGN KEY (username) REFERENCES accounts(username) ON DELETE CASCADE
-    
+    FOREIGN KEY (username) REFERENCES accounts(username) ON DELETE CASCADE  
 )`)
 
 connection.query(`CREATE TABLE IF NOT EXISTS comments (
