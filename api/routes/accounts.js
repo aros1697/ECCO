@@ -81,7 +81,7 @@ router.post('/signup', upload.single('avatar'), (request, response, next) => {
                 } else {
                     const username = result.insertUsername
                     
-                    response.setHeader("Location", "/accounts/"+username)
+                    response.setHeader("Location", "/accounts/"+user.username)
                     response.status(201).json({
                         message: "User created",
                         user: user
@@ -124,12 +124,13 @@ router.post('/login', (request, response, next) => {
                 const accessToken = jwt.sign({
                     username: user.username,
                     }, jwtSecret)
+                response.setHeader("Location", "/accounts/"+createdUser.username)
                 return response.status(200).json({
                     message: "Authorization successful",
                     accessToken: accessToken
                 })
             }
-            if (counter == 2) {
+            if (counter >= 2) {
                 response.status(400).json({
                     message: "Your account is locked. Try again in 1 hour."
                     })
