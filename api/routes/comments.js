@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router()
 const checkAuth = require('../middleware/check-auth')
 
-router.get('/', (request, response, next) => {
+router.get('/', checkAuth, (request, response, next) => {
     response.status(200).json({
         message: "Comments was fetched"
     })
@@ -14,7 +14,7 @@ router.post('/', checkAuth, (request, response, next) => {
     })
 })
 
-router.get('/:commentId', (request, response, next) => {
+router.get('/:commentId', checkAuth, (request, response, next) => {
     const commentId = request.params.commentId
     response.status(200).json({
         message: "Comment details",

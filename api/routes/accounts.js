@@ -7,8 +7,9 @@ const checkAuth = require('../middleware/check-auth')
 const connection = require('../../db')
 
 const jwtSecret = "jknasbdhbsadvsavdagsdsdvraw"
+var counter = 0
 
-// save uploads in folder /avatars and name it to the original filename
+// Save uploads in folder /avatars and name it to the original filename
 const storage = multer.diskStorage({
     destination: function(request, file, callback) {
         callback(null, './avatars/')
@@ -18,7 +19,7 @@ const storage = multer.diskStorage({
     }
 })
 
-// only accept jpegs and pngs, reject other files
+// Accept only jpegs and pngs, reject other files
 const fileFilter = (request, file, callback) => {
     if (file.mimetype === image/jpeg || file.mimetype === image/png) {
         callback(null, true)
@@ -36,13 +37,22 @@ const upload = multer({
     fileFiler: fileFilter
 })
 
-// Fetch a list with user-accounts
+// GET /accounts
+// Fetch a list with all user-accounts in database
 router.get('/', (request, response, next) => {
-    response.status(200).json({
-        message: "User-accounts was fetched"
+
+    const query = "SELECT username, email, avatar FROM accounts"
+
+    connection.query(query, function(error, result){
+        response.status(200).json({
+            message: "User-accounts was fetched",
+            accounts: result
+        })
     })
 })
 
+// POST /accounts/signup
+// Signup with username, hashed password, email and avatar
 router.post('/signup', upload.single('avatar'), (request, response, next) => {
     bcrypt.hash(request.body.password, 10, (err, hash) => {
         if (err) {
@@ -82,75 +92,139 @@ router.post('/signup', upload.single('avatar'), (request, response, next) => {
     })
 })
 
+// POST /accounts/login
+// Login with valid username
 router.post('/login', (request, response, next) => {
-    const user = {
+    const createdUser = {
         username: request.body.username,
         password: request.body.password
-        }
-
-    bcrypt.compare(user.password, user[0].password, (err, result) => {
-        if (err) {
-            response.status(401).json({
-                message: "Authorization failed"
-            })
-        }
-
-        const query = "SELECT * FROM accounts WHERE username = ?"
-        const values = [username]
+    }
+    const query = "SELECT * FROM accounts WHERE username = ?"
+    const values = [createdUser.username, createdUser.password]
         
-        connection.query(query, values, function(error, users){
-            if (error) {
-                response.status(500).end()
-            } else {
-                if(users.length == 0){
-                    response.status(400).json({error: "invalid_grant"})
-                    return
-                }
-                const user = user[0]
-                if (user.password === password){
-                    const accessToken = jwt.sign({
-                        username: user.username,
-                    }, jwtSecret,
-                    {
-                        expiresIn: "1h"
-                    }
-                    )
-                    response.status(200).json({
-                        message: "Authorization successful",
-                        accessToken: accessToken
+    connection.query(query, values, function(error, users){
+        const user = users[0]
+        if(users.length == 0){
+            response.status(400).json({error: "Invalid username"})
+            return
+        }
+        bcrypt.compare(createdUser.password, users[0].password, (err, result) => {
+            if (err) {
+                if (counter >= 2) {
+                    response.status(400).json({
+                        message: "Your account is locked. Try again in 1 hour."
                     })
                 }
+                counter++
                 response.status(401).json({
-                    message: "Authorization failed"
+                    message: "Authorization failed",
+                }) 
+            }
+            if (result) { 
+                const accessToken = jwt.sign({
+                    username: user.username,
+                    }, jwtSecret)
+                return response.status(200).json({
+                    message: "Authorization successful",
+                    accessToken: accessToken
                 })
             }
+            if (counter == 2) {
+                response.status(400).json({
+                    message: "Your account is locked. Try again in 1 hour."
+                    })
+                }
+            counter++
+            response.status(401).json({
+                message: "Authorization failed!",
+            })
         })
     })
 })
 
+// GET /accounts/username
+// Retrieve a specific username
 router.get('/:username', (request, response, next) => {
     const username = request.params.username
-    if(username === 'Anton'){
-        response.status(200).json({
-            message: "The perfect username",
-            username: username
-        })
-    } else {
-        response.status(200).json({
-            message: "The username is " +username
-        })
-    }
-})
 
-router.put('/:username', checkAuth, (request, response, next) => {
-    response.status(200).json({
-        message: "Updated profile!"
+    const query = "SELECT username FROM accounts WHERE username = ?"
+    const values = [username]
+
+    connection.query(query, values, function(error, users){
+        if(error){
+            response.status(500).end()
+        } else {
+            if(username.length == 0){
+                response.status(400).json({
+                    message: "Invalid username",
+                })
+            }
+            const user = users[0]
+            if (user.username == username) {
+                response.status(200).json({
+                    message: "Successfull request",
+                    account: username
+                })
+            } else {
+                response.status(404).json({
+                    message: "Username not found"
+                })
+            }  
+        }
     })
 })
 
+// PUT /accounts/username
+// Lets the signed in user change profile-avatar
+router.put('/:username', checkAuth, upload.single('avatar'), (request, response, next) => {
+    const user = {
+        username: request.body.username,
+        avatar: request.file.path
+    }
+
+    const query = "UPDATE accounts SET avatar = ? WHERE username = ?"
+    const values = [user.avatar, user.username]
+
+    connection.query(query, values, function(error, users){
+        const user = users[0]
+        if(users.length == 0){
+            response.status(400).json({error: "Invalid username"})
+            return
+        }
+        if (error) {
+            response.status(400).json({
+                error: error
+            })
+        } else {
+            response.status(200).json({
+                message: "Updated profile!",
+                avatar: "New avatar: " + request.file.path
+            })
+        }
+    })
+})
+
+// Delete /accounts/username
+//Lets the signed in user delete it's own account
 router.delete('/:username', checkAuth, (request, response, next) => {
-    response.status(200).json({
-        message: "Deleted account!"
+    const user = {
+        username: request.body.username,
+    }
+
+    const query = "DELETE FROM accounts WHERE username = ?"
+    const values = [user.username]
+
+    connection.query(query, values, function(error, users){
+        if (error) {
+            response.status(400).json({
+                error: error
+            })
+        } else {
+            response.status(200).json({
+                message: "Deleted account!",
+                username: "Deleted user: " + user.username
+            })
+        }
     })
 })
 module.exports = router
