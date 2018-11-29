@@ -28,7 +28,7 @@ const fileFilter = (request, file, callback) => {
     }
 }
 
-// accept only images up to 5mb
+// Accept only images up to 5mb
 const upload = multer({
     storage: storage,
     limits: {
@@ -53,6 +53,7 @@ router.get('/', (request, response, next) => {
 
 // POST /accounts/signup
 // Signup with username, hashed password, email and avatar
+// Body: {"username": "User1", "password": "123", "email": "email@example.com", "avatar": "img_123.jpg"}
 router.post('/signup', upload.single('avatar'), (request, response, next) => {
     bcrypt.hash(request.body.password, 10, (err, hash) => {
         if (err) {
@@ -72,15 +73,15 @@ router.post('/signup', upload.single('avatar'), (request, response, next) => {
             connection.query(query, values, function(error, result){
                 if (error){
                     if(error.errno == 1062){
-                        response.status(400).json({error: "Username not Unique"})
+                        response.status(400).json({
+                            error: "Username not unique"
+                        })
                     } else {
                         response.status(500).json({
                             message: error
                         }).end()
                     }
                 } else {
-                    const username = result.insertUsername
-                    
                     response.setHeader("Location", "/accounts/"+user.username)
                     response.status(201).json({
                         message: "User created",
@@ -94,6 +95,7 @@ router.post('/signup', upload.single('avatar'), (request, response, next) => {
 
 // POST /accounts/login
 // Login with valid username
+// Body: {"username": "User1", "password": "123"}
 router.post('/login', (request, response, next) => {
     const createdUser = {
         username: request.body.username,
@@ -143,7 +145,7 @@ router.post('/login', (request, response, next) => {
     })
 })
 
-// GET /accounts/username
+// GET /accounts/:username
 // Retrieve a specific username
 router.get('/:username', (request, response, next) => {
     const username = request.params.username
@@ -175,8 +177,9 @@ router.get('/:username', (request, response, next) => {
     })
 })
 
-// PUT /accounts/username
+// PUT /accounts/:username
 // Lets the signed in user change profile-avatar
+// Body: {"username": "User1", "avatar": "img_123.jpg"}
 router.put('/:username', checkAuth, upload.single('avatar'), (request, response, next) => {
     const user = {
         username: request.body.username,
@@ -205,8 +208,9 @@ router.put('/:username', checkAuth, upload.single('avatar'), (request, response,
     })
 })
 
-// Delete /accounts/username
-//Lets the signed in user delete it's own account
+// Delete /accounts/:username
+// Lets the signed in user delete it's own account
+// Body: {"username": "User1"}
 router.delete('/:username', checkAuth, (request, response, next) => {
     const user = {
         username: request.body.username,

@@ -24,23 +24,23 @@ connection.query(`CREATE TABLE IF NOT EXISTS accounts (
 
 connection.query(`CREATE TABLE IF NOT EXISTS posts (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    contentPost VARCHAR(100),
-    username VARCHAR(50),
+    username VARCHAR(100),
+    postContent VARCHAR(100),
     FOREIGN KEY (username) REFERENCES accounts(username) ON DELETE CASCADE  
 )`)
 
 connection.query(`CREATE TABLE IF NOT EXISTS comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    contentComments VARCHAR(100),
-    username VARCHAR(50),    
+    username VARCHAR(50),
+    commentContent VARCHAR(100),    
     FOREIGN KEY (username) REFERENCES accounts(username) ON DELETE CASCADE
 )`)
 
 connection.query(`CREATE TABLE IF NOT EXISTS privateMessage (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    contentPM VARCHAR(100),
     username VARCHAR(50),
-    FOREIGN KEY (username) REFERENCES accounts(username) ON DELETE CASCADE    
+    pmContent VARCHAR(100),    
+    FOREIGN KEY (username) REFERENCES accounts(username) ON DELETE CASCADE
 )`)
 
 module.exports = connection
