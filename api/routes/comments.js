@@ -10,6 +10,11 @@ router.get('/', checkAuth, (request, response, next) => {
     const query = "SELECT id, username, commentContent FROM comments"
 
     connection.query(query, function(error, result){
+        if (error) {
+            response.status(500).json({
+                error: error
+            }).end()
+        }
         response.status(200).json({
             message: "Comments was fetched",
             comments: result
@@ -27,7 +32,7 @@ router.post('/:postsId', checkAuth, (request, response, next) => {
         commentContent: request.body.commentContent
     }
     if (comment.commentContent.length <= 2) {
-        response.status(404).json({
+        response.status(400).json({
             message: "Your comment must contain at least 3 characters"
         }).end()
     }
@@ -56,7 +61,7 @@ router.post('/:postsId', checkAuth, (request, response, next) => {
 
 // GET /comments/:commentId
 // Retrieve a specific comment
-router.get('/:commentId', (request, response, next) => {
+router.get('/:commentId', checkAuth, (request, response, next) => {
     const commentId = request.params.commentId
 
     const query = "SELECT id, commentContent FROM comments WHERE id = ?"
@@ -83,9 +88,10 @@ router.delete('/:commentId', checkAuth, (request, response, next) => {
     const query = "DELETE FROM comments WHERE id = ?"
     const values = [commentId]
 
-    connection.query(query, values, function(error, users){
+    connection.query(query, values, function(error, result){
+        const comment = result[0]
         if (error) {
-            response.status(400).json({
+            response.status(500).json({
                 error: error
             })
         } else {

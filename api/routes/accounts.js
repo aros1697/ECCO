@@ -69,7 +69,11 @@ router.post('/signup', upload.single('avatar'), (request, response, next) => {
             }
             const query = "INSERT INTO accounts (username, password, email, avatar) VALUES (?, ?, ?, ?)"
             const values = [user.username, user.password, user.email, user.avatar]
-        
+            if (user.username.length <= 2){
+                response.status(400).json({
+                    error: "Username must contain at least 3 characters"
+                })
+            }
             connection.query(query, values, function(error, result){
                 if (error){
                     if(error.errno == 1062){
@@ -147,32 +151,35 @@ router.post('/login', (request, response, next) => {
 
 // GET /accounts/:username
 // Retrieve a specific username
-router.get('/:username', (request, response, next) => {
+router.get('/:username', checkAuth, (request, response, next) => {
     const username = request.params.username
 
-    const query = "SELECT username FROM accounts WHERE username = ?"
+    const query = "SELECT username, email, avatar FROM accounts WHERE username = ?"
     const values = [username]
 
     connection.query(query, values, function(error, users){
-        if(error){
-            response.status(500).end()
-        } else {
+        if (error){
             if(username.length == 0){
                 response.status(400).json({
                     message: "Invalid username",
                 })
-            }
-            const user = users[0]
-            if (user.username == username) {
-                response.status(200).json({
-                    message: "Successfull request",
-                    account: username
-                })
             } else {
-                response.status(404).json({
-                    message: "Username not found"
+                response.status(500).json({
+                    error: error
                 })
-            }  
+            }
+        }  
+
+        const user = users[0]
+        if (user.username == username) {
+            response.status(200).json({
+                message: "Successful request",
+                account: user
+            })
+        } else {
+            response.status(404).json({
+                message: "Username not found"
+            })
         }
     })
 })
@@ -196,7 +203,7 @@ router.put('/:username', checkAuth, upload.single('avatar'), (request, response,
             return
         }
         if (error) {
-            response.status(400).json({
+            response.status(500).json({
                 error: error
             })
         } else {
@@ -209,9 +216,9 @@ router.put('/:username', checkAuth, upload.single('avatar'), (request, response,
 })
 
 // Delete /accounts/:username
-// Lets the signed in user delete it's own account
+// Lets the signed in user delete an account
 // Body: {"username": "User1"}
-router.delete('/:username', checkAuth, (request, response, next) => {
+router.delete('/:username', (request, response, next) => {
     const user = {
         username: request.body.username,
     }
@@ -221,7 +228,7 @@ router.delete('/:username', checkAuth, (request, response, next) => {
 
     connection.query(query, values, function(error, users){
         if (error) {
-            response.status(400).json({
+            response.status(500).json({
                 error: error
             })
         } else {

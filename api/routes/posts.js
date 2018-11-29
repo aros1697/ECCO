@@ -29,7 +29,7 @@ router.post('/', checkAuth, (request, response, next) => {
         postContent: request.body.postContent
     }
     if (post.postContent.length <= 2) {
-        response.status(404).json({
+        response.status(400).json({
             message: "Your comment must contain at least 3 characters"
         })
     }
@@ -52,7 +52,7 @@ router.post('/', checkAuth, (request, response, next) => {
 
 // GET /posts/:postId
 // Retrieves a post with a specific id
-router.get('/:postId', (request, response, next) => {
+router.get('/:postId', checkAuth, (request, response, next) => {
     const postId = request.params.postId
 
     const query = "SELECT id, postContent FROM posts WHERE id = ?"
@@ -81,7 +81,7 @@ router.delete('/:postId', checkAuth, (request, response, next) => {
 
     connection.query(query, values, function(error, result){
         if (error) {
-            response.status(400).json({
+            response.status(500).json({
                 error: error
             })
         } else {
